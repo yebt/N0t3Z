@@ -1,23 +1,31 @@
 {
-  "name": "n0t3z",
-  "private": true,
-  "version": "0.0.0",
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
-  },
-  "dependencies": {
-    "@popperjs/core": "^2.11.5",
-    "vue": "^3.2.37"
-  },
-  "devDependencies": {
-    "@vitejs/plugin-vue": "^3.0.0",
-    "autoprefixer": "^10.4.7",
-    "postcss": "^8.4.14",
-    "sass": "^1.54.0",
-    "tailwindcss": "^3.1.6",
-    "vite": "^3.0.0"
-  }
+    "name": "n0t3z",
+    "private": true,
+    "version": "0.0.0",
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build",
+        "preview": "vite preview",
+        "lint": "eslint --ext .js,.vue --ignore-path .gitignore --fix src",
+        "formatc": "prettier .  --check",
+        "formatw": "prettier .  --write"
+    },
+    "dependencies": {
+        "@flaticon/flaticon-uicons": "^1.5.0",
+        "@popperjs/core": "^2.11.5",
+        "vue": "^3.2.37"
+    },
+    "devDependencies": {
+        "@vitejs/plugin-vue": "^3.0.0",
+        "autoprefixer": "^10.4.7",
+        "eslint": "^8.20.0",
+        "eslint-config-prettier": "^8.5.0",
+        "eslint-plugin-vue": "^9.3.0",
+        "postcss": "^8.4.14",
+        "prettier": "2.7.1",
+        "sass": "^1.54.0",
+        "tailwindcss": "^3.1.6",
+        "vite": "^3.0.0"
+    }
 }
