@@ -1,4 +1,5 @@
 const express = require("express");
+const cors = require("cors");
 // --------------------------------------------------
 // laod env
 if (process.env.NODE_ENV !== 'production') {
@@ -9,6 +10,7 @@ const app = express();
 const port = process.env.PORT || 80;
 
 app.use(express.json());
+app.use(cors());
 
 //----------------------------------------------------------------------------------------------------------------------
 // db
