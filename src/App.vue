@@ -1,5 +1,9 @@
 <script setup>
-
+// add env just on dev env
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config();
+}
+api_url = process.env.API_URL || 'https://node-http-module-dev.up.railway.app';
 </script>
 
 <template>
