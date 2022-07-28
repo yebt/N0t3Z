@@ -67,10 +67,9 @@ async function updateColorScheme(colorscheme) {
             "UPDATE colorscheme SET name = ?, description = ?, colors = ? WHERE id = ?",
             colorscheme.name,
             colorscheme.description,
-            colorscheme.colors,
+            JSON.stringify(colorscheme.colors),
             colorscheme.id,
             function (err) {
-                reject(err);
                 if (err) {
                     reject(err);
                 } else {
@@ -84,7 +83,6 @@ async function updateColorScheme(colorscheme) {
 async function deleteColorScheme(id) {
     return new Promise((resolve, reject) => {
         db.run("DELETE FROM colorscheme WHERE id = ?", id, function (err) {
-            reject(err);
             if (err) {
                 reject(err);
             } else {
@@ -193,6 +191,7 @@ app.post("/", async (req, res) => {
     res.setHeader("Content-Type", "application/json");
     res.end(JSON.stringify({ result: meesage, id: id }));
 });
+
 // update colorscheme
 app.put("/", async (req, res) => {
     // get colorscheme from body
@@ -210,6 +209,7 @@ app.put("/", async (req, res) => {
     res.setHeader("Content-Type", "application/json");
     res.end(JSON.stringify({ result: meesage, data: changes }));
 });
+
 // delete colorscheme
 app.delete("/:id", async (req, res) => {
     // get id from url
@@ -225,7 +225,11 @@ app.delete("/:id", async (req, res) => {
             meesage = "error";
         });
     res.setHeader("Content-Type", "application/json");
-    res.end(JSON.stringify({ result: meesage, data: changes }));
+    if (changes > 0) {
+        res.end(JSON.stringify({ result: meesage, data: `Color wuth id ${id} has been deleted` }));
+    }else {
+        res.end(JSON.stringify({ result: "error", data: `No color whith id ${id}` }));
+    }
 });
 
 // save a new colorshcheme
