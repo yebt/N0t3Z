@@ -1,11 +1,15 @@
 <script>
-const api_url = "http://127.0.0.1:8080";
+// const api_url = "http://127.0.0.1:8080";
+// lt --port 8080 --subdomain colorschemeapi
+const api_url = "http://colorschemeapi.loca.lt";
+// http://colorschemeapi.loca.lt
 
 export default {
     data() {
         return {
+            debugcc: true,
             error: false,
-            loading: true,
+            loading: false,
             colorSchemes: [],
             separated: false,
             rounded: false,
@@ -36,146 +40,175 @@ export default {
                 this.error = true;
             }
         },
+        clickSync() {
+            if (this.loading) {
+                return;
+            }
+            this.loading = true;
+            setTimeout(() => {
+                this.processColorSchemes();
+            }, 1000);
+            //this.processColorSchemes();
+
+        },
+        getForegrund(color){
+
+            let red = parseInt(color.substr(1,2), 16); // Grab the hex representation of red (chars 1-2) and convert to decimal (base 10).
+            let green = parseInt(color.substr(3,2), 16);
+            let blue = parseInt(color.substr(5,2), 16);
+            if ((red*0.299 + green*0.587 + blue*0.114) > 186) 
+                return '#000000'
+            else 
+                return '#ffffff'
+        }
     },
     mounted() {
-        setTimeout(() => {
-            this.processColorSchemes();
-        }, 1000);
-        //this.processColorSchemes();
+        // this.clickSync();
     },
 };
 </script>
 
 <template>
-    <div class="h-screen w-full bg-gray-200">
-        <div class="w-full h-full flex flex-col sm:items-center justify-center">
-            <div class="flex mx-3">
-                <div class="bg-white rounded-lg shadow shadow-slate-300 flex-1">
+
+    <div class="h-full py-12 bg-gray-100">
+        <div class="flex flex-col justify-center h-full sm:items-center">
+
+            <!-- search -->
+            <div class="flex mx-3 mb-3 sm:mx-0">
+                <!-- input setup-->
+                <div class="flex-1">
+                    <!-- icon -->
                     <div class="relative w-full">
-                        <div class="flex absolute inset-y-0 left-0 items-center pl-3 pointer-events-none">
-                            <i class="fi fi-rr-search w-5 h-5 text-gray-500"></i>
+                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                            <i class="w-5 h-5 text-gray-500 fi fi-rr-search"></i>               
                         </div>
-                        <input id="simple-search" type="text" class="bg-gray-50 border border-2 border-r-0 border-gray-200 text-gray-800 text-sm rounded-l-lg sm:rounded-lg outline-none ring-0 focus:ring focus:ring-teal-400/40 block w-full pl-10 p-2.5" placeholder="Search" required />
+                        <input type="text" class="block p-2.5 pl-10 text-sm text-gray-800 border border-r-0 rounded-l-lg shadow outline-none border-slate-300  ring-0 focus:ring focus:ring-teal-400/40 sm:rounded-lg sm:border-r w-full transition-shadow hover:shadow-lg duration-500" placeholder="Search" required />
                     </div>
+
                 </div>
-                <div class="flex sm:items-center">
-                    <button @click="processColorSchemes()" class="border-2 border-l-0 sm:border-none border-gray-200 bg-teal-500 rounded-r-lg p-2 text-slate-200 shadow-md outline-0 sm:ml-2 sm:rounded-lg focus:ring focus:ring-teal-400/40 hover:shadow-lg hover:bg-teal-600/80 hover:text-slate-50 hover:sm:text-lg">
-                        <i class="flex fi fi-rr-refresh"></i>
+                <!-- button --> 
+                <div class="flex sm:items-center sm:ml-2">
+                    <button type="button" @click="clickSync()" class="p-2 bg-teal-500 border border-l-0 rounded-r-lg shadow outline-none border-slate-300 sm:rounded-lg sm:border-l transition duration-300" :class="{'hover:shadow-lg hover:bg-teal-600 focus:ring focus:ring-teal-400/40':!loading, 'bg-teal-500/70 animate-pulse pointer-events-none':loading}"  :disable="loading"> 
+
+                        <i  class="flex text-lg text-zinc-50 fi fi-rr-refresh" :class="{'animate-spin':loading}"></i>
                     </button>
                 </div>
+
             </div>
+            <!-- data -->
+            <div class="flex max-h-full px-2 sm:p-2 sm:w-5/6">
 
-            <div class="max-h-[80%]  sm:w-5/6 md:w-4/5 p-3 m-3 sm:m-3 bg-white rounded-xl shadow-lg">
-                <!-- error case -->
-                <div v-if="error">
-                    <div class="text-center text-red-500/60">
-                        <h1 class="text-2xl font-bold">Error</h1>
-                        <p class="text-md">Something went wrong :c.</p>
-                    </div>
-                </div>
-                <!-- loading case -->
-                <div v-else-if="loading" class="flex justify-center">
-                    <div class="lds-ellipsis">
-                        <div class="bg-teal-400 shadow"></div>
-                        <div class="bg-teal-400 shadow"></div>
-                        <div class="bg-teal-400 shadow"></div>
-                        <div class="bg-teal-400 shadow"></div>
-                    </div>
-                </div>
+                <div class="w-full h-full min-h-[10rem]  bg-white border rounded-lg border-slate-200 hover:shadow-md transition-shadow duration-300 p-2">
 
-                <!-- empty case -->
-                <div v-else-if="colorSchemes.length == 0">
-                    <div class="text-center text-gray-500">
-                        <h1 class="text-2xl font-bold">No color schemes found yet</h1>
-                        <p class="text-md">Please try again later or feed this.</p>
-                    </div>
-                </div>
+                    <!-- success case -->
+                    <div v-if="!loading && colorSchemes.length != 0 && !error"
+                        class="flex flex-col h-full">
+                        <!-- tools -->
+                        <div  class="flex mb-2">
+                            <!-- left logo -->
+                            <div class="flex px-2.5 text-teal-700 rounded bg-emerald-50 font-major-mono-display-regular">
+                                <span class="my-auto">N<span class="hidden sm:inline">c020R5</span></span>
+                            </div>
 
-                    <div class="flex flex-row items-center rounded-md mb-3">
-                        <!-- logo -->
-                        <div class="text-teal-700 bg-emerald-50 rounded py-1 px-2 font-major-mono-display-regular relative">
-                            <span class="inline sm:hidden">N</span>
-                            <span class="hidden sm:inline">c020R5</span>
-                        </div>
-
-                        <div class="ml-auto px-0.5 flex flex-row outline outline-1 outline-slate-100 rounded shadow font-major-mono-display-regular">
-                            <button class="px-2.5 py-2 m-1 rounded text-gray-600 hover:bg-slate-100" :class="{ 'text-green-600 bg-teal-300/20': separated }" @click="separated = !separated">
-                                <i v-show="separated" class="flex fi fi-sr-apps"></i>
-                                <i v-show="!separated" class="flex fi fi-rr-apps"></i>
-                            </button>
-                            <button class="px-2.5 py-2 m-1 rounded text-gray-600 hover:bg-slate-100" :class="{ 'text-green-600 bg-teal-300/20': rounded }" @click="rounded = !rounded">
-                                <i v-show="rounded" class="flex fi fi-ss-circle"></i>
-                                <i v-show="!rounded" class="flex fi fi-rr-circle"></i>
-                            </button>
-                            <button class="px-2.5 py-2 m-1 rounded text-gray-600 hover:bg-slate-100" :class="{ 'text-green-600 bg-teal-300/20': showname }" @click="showname = !showname">
-                                <i v-show="showname" class="flex fi fi-sr-label"></i>
-                                <i v-show="!showname" class="flex fi fi-rr-label"></i>
-                            </button>
-                        </div>
-                    </div>
-                <!-- data case -->
-                <div  class="max-h-[80%] flex-auto overflow-y-auto">
-
-                    <!-- controls -->
-                    <!-- <div class="flex flex-row items-center rounded-md mb-3"> -->
-                    <!--     <!-1- logo -1-> -->
-                    <!--     <div class="text-teal-700 bg-emerald-50 rounded py-1 px-2 font-major-mono-display-regular relative"> -->
-                    <!--         <span class="inline sm:hidden">N</span> -->
-                    <!--         <span class="hidden sm:inline">c020R5</span> -->
-                    <!--     </div> -->
-
-                    <!--     <div class="ml-auto px-0.5 flex flex-row outline outline-1 outline-slate-100 rounded shadow font-major-mono-display-regular"> -->
-                    <!--         <button class="px-2.5 py-2 m-1 rounded text-gray-600 hover:bg-slate-100" :class="{ 'text-green-600 bg-teal-300/20': separated }" @click="separated = !separated"> -->
-                    <!--             <i v-show="separated" class="flex fi fi-sr-apps"></i> -->
-                    <!--             <i v-show="!separated" class="flex fi fi-rr-apps"></i> -->
-                    <!--         </button> -->
-                    <!--         <button class="px-2.5 py-2 m-1 rounded text-gray-600 hover:bg-slate-100" :class="{ 'text-green-600 bg-teal-300/20': rounded }" @click="rounded = !rounded"> -->
-                    <!--             <i v-show="rounded" class="flex fi fi-ss-circle"></i> -->
-                    <!--             <i v-show="!rounded" class="flex fi fi-rr-circle"></i> -->
-                    <!--         </button> -->
-                    <!--         <button class="px-2.5 py-2 m-1 rounded text-gray-600 hover:bg-slate-100" :class="{ 'text-green-600 bg-teal-300/20': showname }" @click="showname = !showname"> -->
-                    <!--             <i v-show="showname" class="flex fi fi-sr-label"></i> -->
-                    <!--             <i v-show="!showname" class="flex fi fi-rr-label"></i> -->
-                    <!--         </button> -->
-                    <!--     </div> -->
-                    <!-- </div> -->
-
-                    <!-- data -->
-                    <!-- <div class=""> -->
-                    <!--     <div v-for="scheme in colorSchemes" :key="scheme.id" class="rounded outline outline-1 my-2 px-1 outline-slate-100 hover:shadow-md hover:outline-slate-200 relative"> -->
-                    <!--         <h6 class="text-[10px] text-gray-600 font-mono">{{ scheme.name }}</h6> -->
-                    <!--         <div class=""> -->
-                    <!--             <div v-for="(color, index) in scheme.colors" :key="index"> -->
-                    <!--                 {{ color.hex }} -->
-                    <!--             </div> -->
-                    <!--         </div> -->
-                    <!--         <div v-for="scheme in colorSchemes" :key="scheme.id" class="rounded outline outline-1 my-2 px-1 outline-slate-100 hover:shadow-md hover:outline-slate-200 relative"> -->
-                    <!--             <h6 class="text-[10px] text-gray-600 font-mono">{{ scheme.name }}</h6> -->
-                    <!--             <div class=""> -->
-                    <!--                 <div v-for="(color, index) in scheme.colors" :key="index"> -->
-                    <!--                     {{ color.hex }} -->
-                    <!--                 </div> -->
-                    <!--             </div> -->
-                    <!--         </div> -->
-                    <!--     </div> -->
-                    <!-- </div> -->
-                    <div class="max-h-[100%]  flex-auto overflow-y-auto">
-                        <div class="" v-for="(a,index) in [,,,,,,,,]" :key="index">
-                            Lorem ipsum dolor sit amet consectetur, adipisicing elit. Explicabo in minima adipisci dignissimos necessitatibus ut sequi ducimus libero, nostrum accusantium!
+                            <!-- right tools -->
+                            <div class="ml-auto px-0.5 flex flex-row outline outline-1 outline-slate-100 rounded shadow-sm font-major-mono-display-regular">
+                                <button class="px-2.5 py-2 m-1 rounded text-gray-600 hover:bg-slate-100" :class="{ 'text-green-600 bg-teal-300/20': separated }" @click="separated = !separated">
+                                    <i v-show="separated" class="flex fi fi-sr-apps"></i>
+                                    <i v-show="!separated" class="flex fi fi-rr-apps"></i>
+                                </button>
+                                <button class="px-2.5 py-2 m-1 rounded text-gray-600 hover:bg-slate-100" :class="{ 'text-green-600 bg-teal-300/20': rounded }" @click="rounded = !rounded">
+                                    <i v-show="rounded" class="flex fi fi-ss-circle"></i>
+                                    <i v-show="!rounded" class="flex fi fi-rr-circle"></i>
+                                </button>
+                                <button class="px-2.5 py-2 m-1 rounded text-gray-600 hover:bg-slate-100" :class="{ 'text-green-600 bg-teal-300/20': showname }" @click="showname = !showname">
+                                    <i v-show="showname" class="flex fi fi-sr-label"></i>
+                                    <i v-show="!showname" class="flex fi fi-rr-label"></i>
+                                </button>
+                            </div>
 
                         </div>
 
+                        <!-- colorschemes -->
+                        <div class="h-full p-2 overflow-y-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 md:gap-4">
+                            <div v-for="(item,index) in colorSchemes" :key="index"
+                                class="relative py-2 group"
+                            >
+                                <div class="absolute invisible w-full group-hover:visible bg-neutral-50/60 md:visible md:relative" :class="{'hidden':!showname}">
+                                    <span class="px-2 font-mono text-gray-800 capitalize" >{{item.name}}</span>
+                                </div>
+
+                                <div class="grid grid-flow-col" :class="{'gap-0.5':separated}">
+                                    <div v-for="(colorItem, colorIndx) in item.colors" :key="colorIndx"
+                                        class="flex h-20 hover:px-4 transition-all duration-300"  :class="{'rounded':rounded}"
+                                        :style="{'background-color': colorItem.hex}"
+                                    >
+                                        <span class="m-auto select-none" style="writing-mode: vertical-lr; transform: rotate(180deg);" :style="{'color': getForegrund(colorItem.hex)}">
+                                            {{colorItem.hex}}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
                     </div>
 
 
+                    <!-- cases -->
+                    <div v-else class="flex items-center justify-center h-full">
+
+                        <!-- error case -->
+                        <div v-if="error">
+                            <div class="text-center text-red-500/60">
+                                <h1 class="text-2xl font-bold">Error</h1>
+                                <p class="text-md">Something went wrong :c.</p>
+                            </div>
+                        </div>
+                        <!-- loading case -->
+                        <div v-else-if="loading" class="flex justify-center">
+                            <div class="lds-ellipsis">
+                                <div class="bg-teal-400 shadow"></div>
+                                <div class="bg-teal-400 shadow"></div>
+                                <div class="bg-teal-400 shadow"></div>
+                                <div class="bg-teal-400 shadow"></div>
+                            </div>
+                        </div>
+
+                        <!-- empty case -->
+                        <div v-else-if="colorSchemes.length == 0">
+                            <div class="text-center text-gray-500">
+                                <h1 class="text-2xl font-bold">No color schemes found yet</h1>
+                                <p class="text-md">Please try again later or feed this.</p>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
+
+
             </div>
         </div>
+
     </div>
+
+    <!-- ---------------------------------------------------------------------------------------------- -->
+
+
 </template>
 
+<style>
+html,
+body,
+#app {
+    height: 100%;
+}
+* {
+    outline: silver solid 1px !important;
+}
+</style>
+
 <style scoped>
+/* try use all screen */
+
 /*Loader*/
 .lds-ellipsis {
     display: inline-block;
